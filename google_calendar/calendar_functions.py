@@ -32,20 +32,35 @@ def check_auth():
             token.write(creds.to_json())
     return creds
 
+def standardize_datetime(date_str: str):
+    # Check if string is already in ISO 8601 format
+    iso_pattern = re.compile(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d+)?(Z|[+-]\d{2}:\d{2})$')
+    if iso_pattern.match(date_str):
+        return date_str
+    
+    else:
+        parsed_date = parser.parse(date_str).replace(microsecond=0)
+
+        # Check if timezone is already included
+        if parsed_date.tzinfo is not None:
+            return parsed_date.isoformat()
+
+        # Assume date provided is in localtime
+        else:
+            local_tz = tz.tzlocal()
+            date_local = parsed_date.replace(tzinfo=local_tz)    
+            return date_local.isoformat()
+
 def get_events(
     top_n: int = 25,
     time_start: str = None,
     time_end: str = None,
 ):
-    """Time Start and Time End should be in ISO format"""
+    """Get events from Google Calendar"""
+   
     creds = check_auth()
-    
     try:
         service = build("calendar", "v3", credentials=creds)
-        if not time_start:
-            time_start = datetime.datetime.now(datetime.timezone.utc).isoformat()
-        if not time_end:
-            time_end = (datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=7)).isoformat()
         
         print(f"Fetching calendar events from {time_start} to {time_end}")
         events_result = (
@@ -68,6 +83,8 @@ def get_events(
         return []
 
 def add_events(event):
+    """Add event to Google Calendar"""
+    
     creds = check_auth()
     
     try:
@@ -82,29 +99,11 @@ def add_events(event):
     except Exception as e:
         print(f"Error in creating the event: {e}")
 
-def standardize_datetime(date_str: str):
-    # Check if string is already in ISO 8601 format
-    iso_pattern = re.compile(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d+)?(Z|[+-]\d{2}:\d{2})$')
-    if iso_pattern.match(date_str):
-        return date_str
-    
-    else:
-        parsed_date = parser.parse(date_str).replace(microsecond=0)
-
-        # Check if timezone is already included
-        if parsed_date.tzinfo is not None:
-            return parsed_date.isoformat()
-
-        # Assume date provided is in localtime
-        else:
-            local_tz = tz.tzlocal()
-            date_local = parsed_date.replace(tzinfo=local_tz)    
-            return date_local.isoformat()
 
 if __name__ == "__main__":
     events = get_events(
-        # time_start="2025-04-10T00:00:00+08:00",
-        # time_end="2025-04-13T00:00:00+08:00",
+        time_start="2025-04-10T00:00:00+08:00",
+        time_end="2025-04-13T00:00:00+08:00",
         top_n=10
     )
 
