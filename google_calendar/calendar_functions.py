@@ -137,8 +137,8 @@ def delete_event(event: dict):
 if __name__ == "__main__":
     # Read events from Google Calendar
     events = read_event(
-        time_start="2025-04-13T00:00:00+08:00",
-        time_end="2025-04-20T00:00:00+08:00",
+        start_time="2025-04-13T00:00:00+08:00",
+        end_time="2025-04-20T00:00:00+08:00",
         top_n=10
     )
 
