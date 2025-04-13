@@ -8,7 +8,7 @@ from calendar_functions import *
 mcp = FastMCP("Calendar Helper")
 
 @mcp.tool()
-def read_calendar(
+def calendar_read_events(
     start_time: str,
     end_time: str,
     top_n: int
@@ -22,7 +22,7 @@ def read_calendar(
     print(f"Fetching events between {start_time} and {end_time}")
     
     try:
-        events = get_events(top_n, start_time, end_time)
+        events = read_event(start_time=start_time, end_time=end_time, top_n=top_n)
         print(f"Events found: {len(events)}")
         
         if not events:
@@ -36,7 +36,7 @@ def read_calendar(
         return {"error": str(e)}
 
 @mcp.tool()
-def create_events(
+def calendar_create_events(
     summary: str,
     start_time: Optional[str],
     end_time: Optional[str],
@@ -69,7 +69,7 @@ def create_events(
         event["attendees"] = attendees
 
     try:
-        link = add_events(event)
+        link = create_event(event=event)
 
         print("Successfully added event to calendar")
         return {"link": link}
@@ -78,26 +78,35 @@ def create_events(
         print(f"Error in inserting event: {e}")
         return {"error": str(e)}
 
+@mcp.tool()
+def calendar_update_events(event: dict, changes: dict):
+    """Update a Google Calendar event"""
+
+    event.update(changes)
+        
+    try:
+        update_event(event=event)
+        print("Successfully updated event in calendar")
+        return {"message": f"Updated {event['summary']} in calendar"}
+    
+    except Exception as e:
+        print(f"Error in updating event: {e}")
+        return {"error": str(e)}
+
+@mcp.tool()
+def calendar_delete_events(event: dict):
+    """Delete a Google Calendar event"""
+    try:
+        delete_event(event=event)
+        print(f"Successfully deleted {event["summary"]} from calendar")
+        return {"message": f"Deleted {event['summary']} from calendar"}
+
+    except Exception as e:
+        print(f"Error in deleting event: {e}")
+        return {"error": str(e)}
+       
+
 
 if __name__ == "__main__":
     # Initialize and run the server
     mcp.run(transport='stdio')
-
-    # events = read_calendar(
-    #     start_time="4/11/2025",
-    #     end_time="16/4/2025",
-    #     top_n=10
-    # )
-    # print(events)
-    
-
-    # event = create_events(
-    #     summary="Attendee Test",
-    #     start_time="2025-04-13 21:00",
-    #     end_time="2025-04-13 22:00",
-    #     location="Online",
-    #     description="Axel's Test. Hopefully works with Claude",
-    #     attendees=[{"email": "glorianath20@gmail.com"}]
-    # )
-    # print(event)
-    

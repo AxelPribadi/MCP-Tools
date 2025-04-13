@@ -51,10 +51,10 @@ def standardize_datetime(date_str: str):
             date_local = parsed_date.replace(tzinfo=local_tz)    
             return date_local.isoformat()
 
-def get_events(
-    top_n: int = 25,
-    time_start: str = None,
-    time_end: str = None,
+def read_event(
+    start_time: str,
+    end_time: str,
+    top_n: int = 10
 ):
     """Get events from Google Calendar"""
    
@@ -62,13 +62,13 @@ def get_events(
     try:
         service = build("calendar", "v3", credentials=creds)
         
-        print(f"Fetching calendar events from {time_start} to {time_end}")
+        print(f"Fetching calendar events from {start_time} to {end_time}")
         events_result = (
             service.events()
             .list(
                 calendarId="primary",
-                timeMin=time_start,
-                timeMax=time_end,
+                timeMin=start_time,
+                timeMax=end_time,
                 maxResults=top_n,
                 singleEvents=True,
                 orderBy="startTime"
@@ -82,7 +82,7 @@ def get_events(
         print(f"Error fetching calendar events: {e}")
         return []
 
-def add_events(event):
+def create_event(event: dict):
     """Add event to Google Calendar"""
     
     creds = check_auth()
@@ -99,11 +99,46 @@ def add_events(event):
     except Exception as e:
         print(f"Error in creating the event: {e}")
 
+def update_event(event: dict):
+    """Update event in Google Calendar"""
+    
+    creds = check_auth()
+
+    try:
+        service = build("calendar", "v3", credentials=creds)
+        
+        # update calendar with event
+        updated_event = service.events().update(calendarId="primary", eventId=event["id"], body=event).execute()
+        
+        print("Event Updated")
+        return updated_event.get("htmlLink")
+
+    except Exception as e:
+        print(f"Error in updating the event: {e}")
+
+def delete_event(event: dict):
+    """Delete event from Google Calendar"""
+
+    creds = check_auth()
+    
+    try:
+        service = build("calendar", "v3", credentials=creds)
+        
+        # delete calendar with event
+        service.events().delete(calendarId="primary", eventId=event["id"]).execute()
+        
+        print("Event Deleted", event["summary"])
+
+    except Exception as e:
+        print(f"Error in deleting the event: {e}")
+
+
 
 if __name__ == "__main__":
-    events = get_events(
-        time_start="2025-04-10T00:00:00+08:00",
-        time_end="2025-04-13T00:00:00+08:00",
+    # Read events from Google Calendar
+    events = read_event(
+        time_start="2025-04-13T00:00:00+08:00",
+        time_end="2025-04-20T00:00:00+08:00",
         top_n=10
     )
 
@@ -112,22 +147,4 @@ if __name__ == "__main__":
             start = event["start"].get("dateTime", event["start"].get("date"))
             print(start, event["summary"])
 
-
-    # now = datetime.now().replace(microsecond=0)
-    # start = (now + timedelta(hours=4)).isoformat()
-    # end = (now + timedelta(hours=6)).isoformat()
-    # timezone = get_localzone_name()
-
-    # event = create_event(
-    #     summary="Kwargs Test",
-    #     start_time=start,
-    #     end_time=end,
-    #     timezone=timezone,
-    #     location="Online",
-    #     description="This event uses the Calendar API",
-    #     attendees=[{"email": "glorianath20@gmail.com"}]
-    # )
-
-    # html_link = add_events(event)
-    # print(html_link)
 
