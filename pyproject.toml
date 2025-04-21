@@ -10,5 +10,6 @@ dependencies = [
     "google-auth-oauthlib>=1.2.1",
     "mcp[cli]>=1.6.0",
     "python-dateutil>=2.9.0.post0",
+    "spotipy>=2.25.1",
     "tzlocal>=5.3.1",
 ]

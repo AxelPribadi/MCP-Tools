@@ -1,6 +1,8 @@
 __pycache__/
+testing.py
 
 # virtual environment
 .venv/
 *.json
 .env
+.cache
